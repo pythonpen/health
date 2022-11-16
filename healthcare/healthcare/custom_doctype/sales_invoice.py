@@ -1,11 +1,19 @@
 import frappe
 
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import SalesInvoice
+from frappe.utils import flt
 
 
 class HealthcareSalesInvoice(SalesInvoice):
+	def validate(self):
+		super(HealthcareSalesInvoice, self).validate()
+		self.calculate_patient_insurance_coverage()
+
+	
 	@frappe.whitelist()
 	def set_healthcare_services(self, checked_values):
+
+		self.set("items", [])
 		from erpnext.stock.get_item_details import get_item_details
 
 		for checked_item in checked_values:
@@ -42,4 +50,52 @@ class HealthcareSalesInvoice(SalesInvoice):
 			if checked_item["description"]:
 				item_line.description = checked_item["description"]
 
-		self.set_missing_values(for_validate=True)
+			if checked_item['discount_percentage']:
+				item_line.discount_percentage = checked_item['discount_percentage']
+
+			if checked_item['insurance_coverage']:
+				item_line.insurance_coverage = checked_item['insurance_coverage']
+
+			if checked_item['patient_insurance_policy']:
+				item_line.patient_insurance_policy = checked_item['patient_insurance_policy']
+
+			if checked_item['coverage_percentage']:
+				item_line.coverage_percentage = checked_item['coverage_percentage']
+
+			if checked_item['insurance_payor']:
+				item_line.insurance_payor = checked_item['insurance_payor']
+
+			if checked_item['coverage_rate']:
+				item_line.coverage_rate = checked_item['coverage_rate']
+
+			if checked_item['coverage_qty']:
+				item_line.coverage_qty = checked_item['coverage_qty']
+
+			if item_line.discount_percentage:
+				item_line.discount_amount = flt(item_line.rate) * flt(item_line.discount_percentage) * 0.01
+				item_line.rate = flt(item_line.rate) - flt(item_line.discount_amount)
+
+			item_line.amount = flt(item_line.rate) * flt(item_line.qty)
+
+			if item_line.insurance_coverage:
+				item_line.insurance_coverage_amount = flt(item_line.amount) * 0.01 * flt(item_line.coverage_percentage)
+
+		super(SalesInvoice, self).calculate_taxes_and_totals()
+		super(HealthcareSalesInvoice, self).set_missing_values(for_validate=True)
+		self.calculate_patient_insurance_coverage()
+
+	def calculate_patient_insurance_coverage(self):
+		total_coverage_amount = 0.0
+
+		for item in self.items:
+			if item.amount and item.insurance_coverage:
+				item.insurance_coverage_amount = item.amount * 0.01 * flt(item.coverage_percentage)
+
+			if item.insurance_coverage_amount and flt(item.insurance_coverage_amount) > 0:
+				total_coverage_amount += flt(item.insurance_coverage_amount)
+
+		self.total_insurance_coverage_amount = total_coverage_amount
+		if self.total_insurance_coverage_amount:
+			self.patient_payable_amount = self.outstanding_amount - self.total_insurance_coverage_amount
+		else:
+			self.patient_payable_amount = self.outstanding_amount

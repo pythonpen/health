@@ -50,6 +50,7 @@ frappe.ui.form.on('Clinical Procedure Template', {
 			});
 		}
 
+<<<<<<< HEAD
 		frm.set_query('item', function() {
 			return {
 				filters: {
@@ -79,6 +80,15 @@ frappe.ui.form.on('Clinical Procedure Template', {
 				});
 			})
 		}
+=======
+		frm.set_query('staff_role', function () {
+			return {
+				filters: {
+					'restrict_to_domain': 'Healthcare'
+				}
+			};
+		});
+>>>>>>> origin/hsr-insurance-wip
 	}
 });
 
@@ -209,7 +219,11 @@ frappe.tour['Clinical Procedure Template'] = [
 	{
 		fieldname: 'consume_stock',
 		title: __('Allow Stock Consumption'),
+<<<<<<< HEAD
 		description: __('Check this if the Clinical Procedure utilises consumables. Click ') + "<a href='https://frappehealth.com/docs/v13/user/manual/en/healthcare/clinical_procedure_template#22-manage-procedure-consumables' target='_blank'>here</a>" + __(' to know more')
+=======
+		description: __('Check this if the Clinical Procedure utilises consumables. Click {0} to know more', ["<a href='https://docs.erpnext.com/docs/user/manual/en/healthcare/clinical_procedure_template#22-manage-procedure-consumables' target='_blank'>here</a>"])
+>>>>>>> origin/hsr-insurance-wip
 
 	},
 	{

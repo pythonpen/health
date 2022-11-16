@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
+  "service_request",
   "appointment",
   "patient",
   "patient_name",
@@ -18,6 +19,12 @@
   "therapy_type",
   "practitioner",
   "department",
+  "insurance_section",
+  "insurance_policy",
+  "insurance_coverage",
+  "column_break_16",
+  "insurance_payor",
+  "coverage_status",
   "details_section",
   "medical_code",
   "duration",
@@ -27,13 +34,14 @@
   "service_unit",
   "start_date",
   "start_time",
-  "invoiced",
   "exercises_section",
   "exercises",
   "section_break_23",
   "total_counts_targeted",
   "column_break_25",
   "total_counts_completed",
+  "more_information_section",
+  "invoiced",
   "amended_from"
  ],
  "fields": [
@@ -219,9 +227,62 @@
    "label": "Medical Code",
    "options": "Medical Code",
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "more_information_section",
+   "fieldtype": "Section Break",
+   "label": "More Information"
+  },
+  {
+   "fieldname": "insurance_section",
+   "fieldtype": "Section Break",
+   "label": "Insurance"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "insurance_policy",
+   "fieldtype": "Link",
+   "label": "Insurance Policy",
+   "options": "Patient Insurance Policy"
+  },
+  {
+   "fieldname": "insurance_payor",
+   "fieldtype": "Link",
+   "label": "Insurance Payor",
+   "options": "Insurance Payor"
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "insurance_coverage",
+   "fieldtype": "Link",
+   "label": "Insurance Coverage",
+   "options": "Patient Insurance Coverage",
+   "read_only": 1
+  },
+  {
+   "fieldname": "coverage_status",
+   "fieldtype": "Data",
+   "label": "Claim Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "service_request",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Service Request",
+   "no_copy": 1,
+   "options": "Service Request",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "is_submittable": 1,
+<<<<<<< HEAD
  "links": [
   {
    "link_doctype": "Nursing Task",
@@ -229,6 +290,10 @@
   }
  ],
  "modified": "2022-01-17 15:11:07.822895",
+=======
+ "links": [],
+ "modified": "2021-12-23 07:16:12.201088",
+>>>>>>> origin/hsr-insurance-wip
  "modified_by": "Administrator",
  "module": "Healthcare",
  "name": "Therapy Session",

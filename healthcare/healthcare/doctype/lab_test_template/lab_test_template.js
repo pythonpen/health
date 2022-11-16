@@ -18,11 +18,18 @@ frappe.ui.form.on('Lab Test Template', {
 			};
 		});
 
+<<<<<<< HEAD
 		frm.set_query('item', function() {
 			return {
 				filters: {
 					'disabled': false,
 					'is_stock_item': false
+=======
+		frm.set_query('staff_role', function () {
+			return {
+				filters: {
+					'restrict_to_domain': 'Healthcare'
+>>>>>>> origin/hsr-insurance-wip
 				}
 			};
 		});

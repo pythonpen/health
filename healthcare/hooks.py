@@ -117,6 +117,11 @@ doc_events = {
 	"Patient": {
 		"after_insert": "healthcare.regional.india.abdm.utils.set_consent_attachment_details"
 	},
+	"Payment Entry": {
+		"on_submit": "healthcare.healthcare.doctype.insurance_claim.insurance_claim.validate_payment_entry_and_set_claim_fields",
+		"on_submit": "healthcare.healthcare.doctype.insurance_claim.insurance_claim.update_claim_paid_amount",
+		"on_cancel": "healthcare.healthcare.doctype.insurance_claim.insurance_claim.update_claim_paid_amount",
+	},
 }
 
 scheduler_events = {

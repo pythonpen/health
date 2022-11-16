@@ -15,14 +15,38 @@ from healthcare.healthcare.doctype.healthcare_settings.healthcare_settings impor
 	get_income_account,
 	get_receivable_account,
 )
+<<<<<<< HEAD
 from healthcare.healthcare.doctype.nursing_task.nursing_task import NursingTask
 from healthcare.healthcare.utils import validate_nursing_tasks
+=======
+from healthcare.healthcare.doctype.service_request.service_request import update_service_request_status
+>>>>>>> origin/hsr-insurance-wip
 
 
 class TherapySession(Document):
 	def validate(self):
 		self.validate_duplicate()
 		self.set_total_counts()
+
+	def after_insert(self):
+		if self.service_request:
+			update_service_request_status(self.service_request, self.doctype, self.name)
+
+	def on_submit(self):
+		self.update_sessions_count_in_therapy_plan()
+
+		if self.service_request:
+			frappe.db.set_value('Service Request', self.service_request, 'status', 'Completed')
+
+	def on_update(self):
+		if self.appointment:
+			frappe.db.set_value('Patient Appointment', self.appointment, 'status', 'Closed')
+
+	def on_cancel(self):
+		if self.appointment:
+			frappe.db.set_value('Patient Appointment', self.appointment, 'status', 'Open')
+
+		self.update_sessions_count_in_therapy_plan(on_cancel=True)
 
 	def validate_duplicate(self):
 		end_time = datetime.datetime.combine(
@@ -61,6 +85,7 @@ class TherapySession(Document):
 			)
 			frappe.throw(overlapping_details, title=_("Therapy Sessions Overlapping"))
 
+<<<<<<< HEAD
 	def on_submit(self):
 		validate_nursing_tasks(self)
 		self.update_sessions_count_in_therapy_plan()
@@ -88,6 +113,8 @@ class TherapySession(Document):
 				post_event=post_event,
 			)
 
+=======
+>>>>>>> origin/hsr-insurance-wip
 	def update_sessions_count_in_therapy_plan(self, on_cancel=False):
 		therapy_plan = frappe.get_doc("Therapy Plan", self.therapy_plan)
 		for entry in therapy_plan.therapy_plan_details:

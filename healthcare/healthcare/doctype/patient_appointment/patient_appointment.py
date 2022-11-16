@@ -11,8 +11,12 @@ from frappe import _
 from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import flt, get_link_to_form, get_time, getdate
-
+from frappe.utils import (
+	flt,
+	get_link_to_form,
+	get_time,
+	getdate
+)
 from healthcare.healthcare.doctype.healthcare_settings.healthcare_settings import (
 	get_income_account,
 	get_receivable_account,
@@ -22,12 +26,26 @@ from healthcare.healthcare.utils import (
 	get_service_item_and_practitioner_charge,
 	manage_fee_validity,
 )
+<<<<<<< HEAD
 
 # todo: clean up imports
 try:
 	from erpnext.hr.doctype.employee.employee import is_holiday
 except ImportError:
 	from erpnext.setup.doctype.employee.employee import is_holiday
+=======
+from erpnext.hr.doctype.employee.employee import is_holiday
+from healthcare.healthcare.doctype.healthcare_settings.healthcare_settings import (
+	get_receivable_account,
+	get_income_account
+)
+from healthcare.healthcare.utils import (
+	check_fee_validity,
+	get_service_item_and_practitioner_charge,
+	manage_fee_validity
+)
+from healthcare.healthcare.doctype.patient_insurance_coverage.patient_insurance_coverage import make_insurance_coverage
+>>>>>>> origin/hsr-insurance-wip
 
 
 class MaximumCapacityError(frappe.ValidationError):
@@ -47,12 +65,36 @@ class PatientAppointment(Document):
 		self.set_status()
 		self.set_title()
 
+
 	def after_insert(self):
 		self.update_prescription_details()
 		self.set_payment_details()
 		invoice_appointment(self)
 		self.update_fee_validity()
 		send_confirmation_msg(self)
+
+		if self.insurance_policy and self.appointment_type and not check_fee_validity(self):
+			if frappe.db.get_single_value('Healthcare Settings', 'automate_appointment_invoicing'):
+				#TODO: apply insurance coverage
+				frappe.msgprint(_('Insurance Coverage not created!<br>Not supported as <b>Automate Appointment Invoicing</b> enabled'),
+					alert=True, indicator='warning')
+			else:
+				self.make_insurance_coverage()
+
+	def make_insurance_coverage(self):
+		billing_detail = get_service_item_and_practitioner_charge(self)
+		coverage = make_insurance_coverage(
+			patient=self.patient,
+			policy=self.insurance_policy,
+			company=self.company,
+			template_dt='Appointment Type',
+			template_dn=self.appointment_type,
+			item_code=billing_detail.get('service_item'),
+			qty=1
+		)
+
+		if coverage and coverage.get('coverage'):
+			self.db_set({'insurance_coverage': coverage.get('coverage'), 'coverage_status': coverage.get('coverage_status')})
 
 	def set_title(self):
 		self.title = _("{0} with {1}").format(
@@ -147,6 +189,7 @@ class PatientAppointment(Document):
 			)
 			service_unit = get_current_healthcare_service_unit(self.inpatient_record)
 			if is_inpatient_occupancy_unit and service_unit != self.service_unit:
+<<<<<<< HEAD
 				msg = (
 					_("Patient {0} is not admitted in the service unit {1}").format(
 						frappe.bold(self.patient), frappe.bold(self.service_unit)
@@ -157,6 +200,11 @@ class PatientAppointment(Document):
 					"Appointment for service units with Inpatient Occupancy can only be created against the unit where patient has been admitted."
 				)
 				frappe.throw(msg, title=_("Invalid Healthcare Service Unit"))
+=======
+				msg = _('Patient {0} is not admitted in the service unit {1}').format(frappe.bold(self.patient), frappe.bold(self.service_unit)) + '<br>'
+				msg += _('Appointment for service units with Inpatient Occupancy can only be created against the unit where patient has been admitted.')
+				frappe.throw(msg, title=_('Invalid Healthcare Service Unit'))
+>>>>>>> origin/hsr-insurance-wip
 
 	def set_appointment_datetime(self):
 		self.appointment_datetime = "%s %s" % (
@@ -310,7 +358,15 @@ def get_appointment_item(appointment_doc, item):
 
 
 def cancel_appointment(appointment_id):
+<<<<<<< HEAD
 	appointment = frappe.get_doc("Patient Appointment", appointment_id)
+=======
+	appointment = frappe.get_doc('Patient Appointment', appointment_id)
+	if appointment.insurance_coverage:
+		coverage = frappe.get_doc('Patient Insurance Coverage', appointment.insurance_coverage)
+		coverage.cancel()
+
+>>>>>>> origin/hsr-insurance-wip
 	if appointment.invoiced:
 		sales_invoice = check_sales_invoice_exists(appointment)
 		if sales_invoice and cancel_sales_invoice(sales_invoice):
@@ -396,7 +452,11 @@ def check_employee_wise_availability(date, practitioner_doc):
 	if employee:
 		# check holiday
 		if is_holiday(employee, date):
+<<<<<<< HEAD
 			frappe.throw(_("{0} is a holiday".format(date)), title=_("Not Available"))
+=======
+			frappe.throw(_('{0} is a holiday').format(date), title=_('Not Available'))
+>>>>>>> origin/hsr-insurance-wip
 
 		# check leave status
 		leave_record = frappe.db.sql(
@@ -532,6 +592,7 @@ def send_confirmation_msg(doc):
 
 @frappe.whitelist()
 def make_encounter(source_name, target_doc=None):
+<<<<<<< HEAD
 	doc = get_mapped_doc(
 		"Patient Appointment",
 		source_name,
@@ -551,6 +612,25 @@ def make_encounter(source_name, target_doc=None):
 		},
 		target_doc,
 	)
+=======
+	doc = get_mapped_doc('Patient Appointment', source_name, {
+		'Patient Appointment': {
+			'doctype': 'Patient Encounter',
+			'field_map': [
+				['appointment', 'name'],
+				['patient', 'patient'],
+				['practitioner', 'practitioner'],
+				['medical_department', 'department'],
+				['patient_sex', 'patient_sex'],
+				['invoiced', 'invoiced'],
+				['company', 'company'],
+				['appointment_type', 'appointment_type'],
+				['insurance_policy', 'insurance_policy'],
+				['insurance_coverage', 'insurance_coverage']
+			]
+		}
+	}, target_doc)
+>>>>>>> origin/hsr-insurance-wip
 	return doc
 
 
